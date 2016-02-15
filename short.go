@@ -15,7 +15,7 @@ import (
 func redisdb() redis.Conn {
 	redisdb, err := redis.DialURL(os.Getenv("REDISURL"))
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	return redisdb
 }
@@ -49,12 +49,13 @@ type shortRequest struct {
 }
 
 func post(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/javascript")
 	decoder := json.NewDecoder(r.Body)
 	var t shortRequest
 	decoder.Decode(&t)
 
 	if !govalidator.IsURL(t.URL) {
-		fmt.Fprintf(w, "Invalid url: %s", t.URL)
+		fmt.Fprintf(w, "{\"error\":\"invalid url\"}")
 		return
 	}
 	short := saveShort(t.URL)
@@ -62,7 +63,6 @@ func post(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "{\"error\":\"url shortening failed\"}")
 		return
 	}
-	w.Header().Set("Content-Type", "application/javascript")
 	fmt.Fprintf(w, "{\"short\":\"https://short.kaveh.me/%s\"}", short)
 }
 
@@ -73,6 +73,11 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 	u, _ := redis.String(redisdb.Do("GET", r.URL.Path[1:]))
 	if u == "" {
 		fmt.Fprintf(w, "not found")
+		return
+	}
+	if r.Header.Get("Content-Type") == "application/json" {
+		w.Header().Set("Content-Type", "application/javascript")
+		fmt.Fprintf(w, "{\"url\":\"%s\"}", u)
 		return
 	}
 	http.Redirect(w, r, u, http.StatusMovedPermanently)

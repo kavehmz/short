@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -48,6 +49,19 @@ func TestPostError(t *testing.T) {
 	}
 }
 
+func TestPostURLError(t *testing.T) {
+	var jsonStr = []byte(`{"url":"https//ex ample.org"}`)
+	req, _ := http.NewRequest("POST", "http://short.me/post", bytes.NewBuffer(jsonStr))
+	req.Header.Add("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	post(w, req)
+	if w.Body.String() != "{\"error\":\"invalid url\"}" {
+		fmt.Println(w.Body.String())
+		t.Error("produced value is not correct", w.Body.String())
+	}
+}
+
 func TestRedirect(t *testing.T) {
 	req, _ := http.NewRequest("GET", "http://short.kaveh.me/5", nil)
 	w := httptest.NewRecorder()
@@ -55,4 +69,24 @@ func TestRedirect(t *testing.T) {
 	if w.Code != 301 {
 		t.Error("expected code was 301 but we got ", w.Code)
 	}
+}
+
+func TestRedirectNotFoudn(t *testing.T) {
+	redisdb().Do("FLUSHALL")
+	req, _ := http.NewRequest("GET", "http://short.kaveh.me/5", nil)
+	w := httptest.NewRecorder()
+	redirect(w, req)
+	if w.Code != 301 {
+		t.Error("expected code was 301 but we got ", w.Code)
+	}
+}
+
+func TestRedisError(t *testing.T) {
+	os.Setenv("REDISURL", "")
+	defer func() {
+		recover()
+	}()
+	redisdb()
+
+	t.Error("wrong REDISURL didn't cause any error")
 }
