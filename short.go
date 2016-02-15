@@ -72,6 +72,11 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 
 	u, _ := redis.String(redisdb.Do("GET", r.URL.Path[1:]))
 	if u == "" {
+		if r.Header.Get("Content-Type") == "application/json" {
+			w.Header().Set("Content-Type", "application/javascript")
+			fmt.Fprintf(w, "{\"error\":\"not found\"}")
+			return
+		}
 		fmt.Fprintf(w, "not found")
 		return
 	}

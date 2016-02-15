@@ -76,8 +76,8 @@ func TestRedirectNotFoudn(t *testing.T) {
 	req, _ := http.NewRequest("GET", "http://short.kaveh.me/5", nil)
 	w := httptest.NewRecorder()
 	redirect(w, req)
-	if w.Code != 301 {
-		t.Error("expected code was 301 but we got ", w.Code)
+	if w.Body.String() != "not found" {
+		t.Error("unknown hash did not return any error")
 	}
 }
 

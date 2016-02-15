@@ -12,6 +12,5 @@ install:
   - go get github.com/garyburd/redigo/redis
   - go get github.com/asaskevich/govalidator
 script:
-  - REDISURL="redis://localhost:6379/0" go test -v
-    # - go test -v -covermode=count -coverprofile=coverage.out
+  - REDISURL="redis://localhost:6379/0" go test -v -covermode=count -coverprofile=coverage.out
     # - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
