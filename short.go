@@ -2,73 +2,68 @@ package main
 
 import (
 	"crypto/md5"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"text/template"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/garyburd/redigo/redis"
 )
 
-func errCheck(err error) {
+func redisdb() redis.Conn {
+	redisdb, err := redis.DialURL(os.Getenv("REDISURL"))
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func redisdb() redis.Conn {
-	redisdb, err := redis.DialURL(os.Getenv("REDISURL"))
-	errCheck(err)
 	return redisdb
 }
 
-func index(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path[1:] != "" {
-		redirect(w, r)
-		return
-	}
-	t, err := template.ParseFiles(os.Getenv("GOPATH") + "/static/index.html")
-	errCheck(err)
-	t.Execute(w, nil)
-}
-
-func saveShort(url string) (string, error) {
+func saveShort(url string) (shortest string) {
 	redisdb := redisdb()
 	defer redisdb.Close()
 
-	short := fmt.Sprintf("%x", md5.Sum([]byte(url)))
+	hash := fmt.Sprintf("%x", md5.Sum([]byte(url)))
 
-	old, _ := redis.String(redisdb.Do("GET", short))
+	old, _ := redis.String(redisdb.Do("GET", "i:"+hash))
 	if old != "" {
-		return old, nil
+		return old
 	}
 
+	// Finding the shortest hash which does not exist.
 	for i := 1; i <= 32; i++ {
-		s, err := redisdb.Do("GET", short[0:i])
-		errCheck(err)
+		s, _ := redisdb.Do("GET", hash[0:i])
 		if s == nil {
-			_, err = redisdb.Do("SET", short[0:i], url)
-			_, err = redisdb.Do("SET", short, short[0:i])
-			errCheck(err)
-			return short[0:i], nil
+			shortest = hash[0:i]
+			break
 		}
 	}
-	return "", errors.New("Can't find a uniqie key available.")
+	redisdb.Do("SET", shortest, url)
+	redisdb.Do("SET", "i:"+hash, shortest)
+	return shortest
+}
 
+type shortRequest struct {
+	URL string
 }
 
 func post(w http.ResponseWriter, r *http.Request) {
-	long := r.FormValue("url")
-	if !govalidator.IsURL(long) {
-		fmt.Fprintf(w, "Invalid url: %s", long)
+	decoder := json.NewDecoder(r.Body)
+	var t shortRequest
+	decoder.Decode(&t)
+
+	if !govalidator.IsURL(t.URL) {
+		fmt.Fprintf(w, "Invalid url: %s", t.URL)
 		return
 	}
-	short, err := saveShort(long)
-	errCheck(err)
-	fmt.Fprintf(w, r.URL.Scheme+"://"+r.URL.Host+"/%s", short)
+	short := saveShort(t.URL)
+	if short == "" {
+		fmt.Fprintf(w, "{\"error\":\"url shortening failed\"}")
+		return
+	}
+	w.Header().Set("Content-Type", "application/javascript")
+	fmt.Fprintf(w, "{\"short\":\"https://short.kaveh.me/%s\"}", short)
 }
 
 func redirect(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +79,7 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", index)
+	http.HandleFunc("/", redirect)
 	http.HandleFunc("/post", post)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
