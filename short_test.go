@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestPost(t *testing.T) {
@@ -89,4 +90,9 @@ func TestRedisError(t *testing.T) {
 	redisdb()
 
 	t.Error("wrong REDISURL didn't cause any error")
+}
+
+func TestMain(t *testing.T) {
+	go main()
+	time.Sleep(time.Second)
 }
