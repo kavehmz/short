@@ -47,7 +47,7 @@ func TestPostError(t *testing.T) {
 func TestSaveShort(t *testing.T) {
 	site := Site{Host: "https://short.me/"}
 	site.redisdb().Do("FLUSHALL")
-	// Runing twice must still return the same short url '/5'
+	// Running twice must still return the same short url '/5'
 	u, err := site.saveShort("https://example.org")
 	if u != "https://short.me/5" || err != nil {
 		t.Error("produced value is not correct", u)
@@ -64,7 +64,7 @@ func TestSaveShort(t *testing.T) {
 	site.redisdb().Do("FLUSHALL")
 	s := "5564fd6a95028f02e52b38bb1743c816"
 	redisdb := site.redisdb()
-	// Add all possible lenght of md5 to redis and see if post correctly fails
+	// Add all possible length of md5 to redis and see if post correctly fails
 	for i := 1; i <= 32; i++ {
 		redisdb.Do("SET", s[0:i], "1")
 	}
