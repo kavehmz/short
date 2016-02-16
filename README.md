@@ -54,7 +54,7 @@ $ go get -u github.com/kavehmz/short
 
 This will install the project and all its dependencies.
 
-Now to test it create a redis instance in redislabs.com and export you redis url like:
+Now to test it create a redis instance in redislabs.com and export your redis url like:
 
 ```$ REDISURL="redis://:PASSWORD@pub-zone.redislabs.com:12919/0"```
 
