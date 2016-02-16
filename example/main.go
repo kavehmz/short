@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	_ "net/http/pprof"
+
 	"github.com/kavehmz/short"
 )
 
