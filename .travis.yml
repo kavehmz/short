@@ -2,6 +2,8 @@ language: go
 go:
   - 1.5
   - tip
+env:
+  - secure: "ian9CT3XjsFI0tJuxvbOajqHrRTkHohIWz/r2wTf+wXeZK3HADAOfr/d6QZ6RvhRgtgTCRXjMr21Hv8oEcgwcDgGjiVy+KDNFivuyyLjGUuYWPNQQYz/xZgQUJcxHyZsJCLjtIQHQMAeDOOUbrh/OnQgz2VzMLskHplSckhg6hcczq1E/ixwCn1iBsD1vPiO1yCJgRq0ASYyLy8nq/ga8WbB67/5HZMCOS32UlVL1RAuIM3zj+a5lI0swG/NM/2U/ehofmwQTC2cop0cxIkvsZN6kKw3CRFmmbkQP8miQBWu8kznoMAMvNMc6PiPTnG9/1GQxHJLCdwzI9xd3Kqzdao2ZcY/tWN0hLdQZs5ocmpVg/TU4yuUmYxlqpaYmaRHPiZ+35KWJiZWZ4M5GP7jsUJ63p7VNtf/fqLrcn6/CzIzWT6OMH+zBJaSuqt9+KpngwG8EpcxFNoQ3FU2DPLUzwaqg/bJeoyNruUo2ag5z9t70kHud7VKvn+waOGFy0uX+g+Ua1SCS29zyLvKdmyxtCpeQ+bxwFKJpjKcyJLtx6SBoGlUdg+Q1icTY2J7XkJtmcrWE64kfa54FKebZwsN2WQ4gVG3kIOq1G1WcSfZzT5rg+nI2A8NBn01ufYrul9ramIOFpBZCVHsBSxxUHFj/ePnTNjaLoe3jBzFjuVTXpk="
 services:
   - redis-server
 install:
@@ -11,3 +13,4 @@ install:
   - go get github.com/asaskevich/govalidator
 script:
   - REDISURL="redis://localhost:6379/0" go test -v -covermode=count -coverprofile=coverage.out
+  - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN

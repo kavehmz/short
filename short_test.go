@@ -1,120 +1,138 @@
-package main
+package short
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 )
 
 func TestPost(t *testing.T) {
-	redisdb().Do("FLUSHALL")
-	// Runing twice must still return the same short url '/5'
-	for i := 0; i < 2; i++ {
-		var jsonStr = []byte(`{"url":"https://example.org"}`)
-		req, _ := http.NewRequest("POST", "http://short.me/post", bytes.NewBuffer(jsonStr))
-		req.Header.Add("Content-Type", "application/json")
+	site := Site{Host: "https://short.me/"}
+	site.redisdb().Do("FLUSHALL")
+	var jsonStr = []byte(`{"url":"https://example.org"}`)
+	req, _ := http.NewRequest("POST", "https://short.me/post", bytes.NewBuffer(jsonStr))
+	req.Header.Add("Content-Type", "application/json")
 
-		w := httptest.NewRecorder()
-		post(w, req)
-		if w.Code != 200 {
-			t.Error("expected code was 200 but we got ", w.Code)
-		}
-		if w.Body.String() != "{\"short\":\"https://short.kaveh.me/5\"}" {
-			t.Error("produced value is not correct", w.Body.String())
-		}
+	w := httptest.NewRecorder()
+	site.Post(w, req)
+	if w.Code != 200 {
+		t.Error("expected code was 200 but we got ", w.Code)
 	}
+	if w.Body.String() != "{\"short\":\"https://short.me/5\", \"error\":\"\"}" {
+		t.Error("produced value is not correct", w.Body.String())
+	}
+
 }
 
 func TestPostError(t *testing.T) {
-	redisdb := redisdb()
-	redisdb.Do("FLUSHALL")
-	short := "5564fd6a95028f02e52b38bb1743c816"
-	// Add all possible lenght of md5 to redis and see if post correctly fails
-	for i := 1; i <= 32; i++ {
-		redisdb.Do("SET", short[0:i], "https://example.org")
-	}
-
-	var jsonStr = []byte(`{"url":"https://example.org"}`)
-	req, _ := http.NewRequest("POST", "http://short.me/post", bytes.NewBuffer(jsonStr))
+	site := Site{Host: "https://short.me/"}
+	site.redisdb().Do("FLUSHALL")
+	var jsonStr = []byte(`{"url":"https://examp le.org"}`)
+	req, _ := http.NewRequest("POST", "https://short.me/post", bytes.NewBuffer(jsonStr))
 	req.Header.Add("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
-	post(w, req)
-	if w.Body.String() != "{\"error\":\"url shortening failed\"}" {
-		fmt.Println(w.Body.String())
+	site.Post(w, req)
+	if w.Code != 200 {
+		t.Error("expected code was 200 but we got ", w.Code)
+	}
+	if w.Body.String() != "{\"short\":\"\", \"error\":\"invalid url\"}" {
 		t.Error("produced value is not correct", w.Body.String())
 	}
+
 }
 
-func TestPostURLError(t *testing.T) {
-	var jsonStr = []byte(`{"url":"https//ex ample.org"}`)
-	req, _ := http.NewRequest("POST", "http://short.me/post", bytes.NewBuffer(jsonStr))
-	req.Header.Add("Content-Type", "application/json")
+func TestSaveShort(t *testing.T) {
+	site := Site{Host: "https://short.me/"}
+	site.redisdb().Do("FLUSHALL")
+	// Runing twice must still return the same short url '/5'
+	u, err := site.saveShort("https://example.org")
+	if u != "https://short.me/5" || err != nil {
+		t.Error("produced value is not correct", u)
+	}
+	u, err = site.saveShort("https://example.org")
+	if u != "https://short.me/5" || err != nil {
+		t.Error("produced value is not the same", u)
+	}
+	u, err = site.saveShort("https://examp e.org")
+	if u != "" || err == nil {
+		t.Error("wrong url did not cause error", u)
+	}
 
-	w := httptest.NewRecorder()
-	post(w, req)
-	if w.Body.String() != "{\"error\":\"invalid url\"}" {
-		fmt.Println(w.Body.String())
-		t.Error("produced value is not correct", w.Body.String())
+	site.redisdb().Do("FLUSHALL")
+	s := "5564fd6a95028f02e52b38bb1743c816"
+	redisdb := site.redisdb()
+	// Add all possible lenght of md5 to redis and see if post correctly fails
+	for i := 1; i <= 32; i++ {
+		redisdb.Do("SET", s[0:i], "1")
+	}
+	u, err = site.saveShort("https://example.org")
+	if u != "" || err == nil {
+		t.Error("did not cause issue when all slots are full", u)
 	}
 }
 
 func TestRedirect(t *testing.T) {
-	req, _ := http.NewRequest("GET", "http://short.kaveh.me/5", nil)
+	site := Site{Host: "https://short.me/"}
+	site.redisdb().Do("FLUSHALL")
+	site.saveShort("https://example.org")
+	req, _ := http.NewRequest("GET", "https://short.me/5", nil)
 	w := httptest.NewRecorder()
-	redirect(w, req)
+	site.Redirect(w, req)
 	if w.Code != 301 {
 		t.Error("expected code was 301 but we got ", w.Code)
 	}
 }
 
 func TestRedirectNotFound(t *testing.T) {
-	redisdb().Do("FLUSHALL")
-	req, _ := http.NewRequest("GET", "http://short.kaveh.me/5", nil)
+	site := Site{Host: "https://short.me/"}
+	site.redisdb().Do("FLUSHALL")
+	req, _ := http.NewRequest("GET", "https://short.me/5", nil)
 	w := httptest.NewRecorder()
-	redirect(w, req)
+	site.Redirect(w, req)
 	if w.Body.String() != "not found" {
 		t.Error("unknown hash did not return any error")
 	}
 }
 
 func TestRedirectJson(t *testing.T) {
-	saveShort("http://short.kaveh.me/5")
-	req, _ := http.NewRequest("GET", "http://short.kaveh.me/5", nil)
+	site := Site{Host: "https://short.me"}
+	site.redisdb().Do("FLUSHALL")
+	site.saveShort("https://example.org")
+	req, _ := http.NewRequest("GET", "https://short.me/5", nil)
 	req.Header.Add("Content-Type", "application/json")
 	w := httptest.NewRecorder()
-	redirect(w, req)
-	if w.Body.String() != "{\"url\":\"http://short.kaveh.me/5\"}" {
+	site.Redirect(w, req)
+	if w.Body.String() != "{\"url\":\"https://example.org\", \"error\":\"\"}" {
 		t.Error("produced value is not correct", w.Body.String())
 	}
 }
 
 func TestRedirectJsonNotFound(t *testing.T) {
-	redisdb().Do("FLUSHALL")
-	req, _ := http.NewRequest("GET", "http://short.kaveh.me/xx", nil)
+	site := Site{Host: "https://short.me/"}
+	req, _ := http.NewRequest("GET", "http://kaveh.me/xx", nil)
 	req.Header.Add("Content-Type", "application/json")
 	w := httptest.NewRecorder()
-	redirect(w, req)
-	if w.Body.String() != "{\"error\":\"not found\"}" {
+	site.Redirect(w, req)
+	if w.Body.String() != "{\"url\":\"\", \"error\":\"not found\"}" {
 		t.Error("produced value is not correct", w.Body.String())
 	}
 }
 
-func TestRedisError(t *testing.T) {
+func TestRedis(t *testing.T) {
+	site := Site{RedisURL: "redis://localhost:6379/0"}
+	if site.redisURL() != "redis://localhost:6379/0" {
+		t.Error("wrong REDISURL")
+	}
+
 	os.Setenv("REDISURL", "")
+	site = Site{RedisURL: ""}
 	defer func() {
 		recover()
 	}()
-	redisdb()
+	site.redisdb()
 
 	t.Error("wrong REDISURL didn't cause any error")
-}
-
-func TestMain(t *testing.T) {
-	go main()
-	time.Sleep(time.Second)
 }
