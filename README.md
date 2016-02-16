@@ -68,7 +68,7 @@ To test it use curl
 $ # To send a url to be minimized
 $ curl -v -X POST -H 'Content-Type: application/json' -d '{"url":"https://example.org"}' http://localhost:8080/post
 $ # json query
-$ curl -v -X POST -H 'Content-Type: application/json'  http://localhost:8080/5
+$ curl -v -X GET -H 'Content-Type: application/json'  http://localhost:8080/5
 $ # normal redirect
 $ curl http://localhost:8080/5
 ```
