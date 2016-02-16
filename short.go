@@ -11,6 +11,8 @@ short has has two entries:
 short uses redis for its backned storage. You can set the redis url in command or in code.
 
 	$ REDISURL="redis://:PASSWORD@pub-zone.redislabs.com:12919/0"
+
+Example of using this package is available in exmaple directory.
 */
 package short
 
