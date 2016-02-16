@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/kmzarc/short"
+	"github.com/kavehmz/short"
 )
 
 func main() {

@@ -2,9 +2,9 @@
 A sample URL shortener Golang app using Redis
 
 [![Go Lang](http://kavehmz.github.io/static/gopher/gopher-front.svg)](https://golang.org/)
-[![GoDoc](https://godoc.org/github.com/kmzarc/short?status.svg)](https://godoc.org/github.com/kmzarc/short)
-[![Build Status](https://travis-ci.org/kmzarc/short.svg?branch=master)](https://travis-ci.org/kmzarch/short)
-[![Coverage Status](https://coveralls.io/repos/github/kmzarc/short/badge.svg?branch=master)](https://coveralls.io/github/kmzarc/short?branch=master)
+[![GoDoc](https://godoc.org/github.com/kavehmz/short?status.svg)](https://godoc.org/github.com/kavehmz/short)
+[![Build Status](https://travis-ci.org/kavehmz/short.svg?branch=master)](https://travis-ci.org/kavehmzh/short)
+[![Coverage Status](https://coveralls.io/repos/github/kavehmz/short/badge.svg?branch=master)](https://coveralls.io/github/kavehmz/short?branch=master)
 
 ---
 ### short
@@ -29,7 +29,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/kmzarc/short"
+	"github.com/kavehmz/short"
 )
 
 func main() {
@@ -48,7 +48,7 @@ You need to have a usable go installation. Then create a directory named site an
 ```
 $ cd site
 $ GOPATH=$PWD
-$ go get -u github.com/kmzarc/short
+$ go get -u github.com/kavehmz/short
 ```
 
 This will install the project and all its dependencies.
@@ -59,7 +59,7 @@ Now to test it create a redis instance in redislabs.com and export you redis url
 
 Then you can run the example
 
-```$ go run src/github.com/kmzarc/short/example/main.go```
+```$ go run src/github.com/kavehmz/short/example/main.go```
 
 To test it use curl
 
