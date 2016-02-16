@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/asaskevich/govalidator"
@@ -70,8 +71,10 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 	redisdb := redisdb()
 	defer redisdb.Close()
 
-	u, _ := redis.String(redisdb.Do("GET", r.URL.Path[1:]))
-	if u == "" {
+	t, _ := redis.String(redisdb.Do("GET", r.URL.Path[1:]))
+	u, _ := url.Parse(t)
+
+	if u.String() == "" {
 		if r.Header.Get("Content-Type") == "application/json" {
 			w.Header().Set("Content-Type", "application/javascript")
 			fmt.Fprintf(w, "{\"error\":\"not found\"}")
@@ -82,10 +85,10 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Header.Get("Content-Type") == "application/json" {
 		w.Header().Set("Content-Type", "application/javascript")
-		fmt.Fprintf(w, "{\"url\":\"%s\"}", u)
+		fmt.Fprintf(w, "{\"url\":\"%s\"}", u.String())
 		return
 	}
-	http.Redirect(w, r, u, http.StatusMovedPermanently)
+	http.Redirect(w, r, u.String(), http.StatusMovedPermanently)
 }
 
 func main() {
