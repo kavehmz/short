@@ -72,13 +72,35 @@ func TestRedirect(t *testing.T) {
 	}
 }
 
-func TestRedirectNotFoudn(t *testing.T) {
+func TestRedirectNotFound(t *testing.T) {
 	redisdb().Do("FLUSHALL")
 	req, _ := http.NewRequest("GET", "http://short.kaveh.me/5", nil)
 	w := httptest.NewRecorder()
 	redirect(w, req)
 	if w.Body.String() != "not found" {
 		t.Error("unknown hash did not return any error")
+	}
+}
+
+func TestRedirectJson(t *testing.T) {
+	saveShort("http://short.kaveh.me/5")
+	req, _ := http.NewRequest("GET", "http://short.kaveh.me/5", nil)
+	req.Header.Add("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	redirect(w, req)
+	if w.Body.String() != "{\"url\":\"http://short.kaveh.me/5\"}" {
+		t.Error("produced value is not correct", w.Body.String())
+	}
+}
+
+func TestRedirectJsonNotFound(t *testing.T) {
+	redisdb().Do("FLUSHALL")
+	req, _ := http.NewRequest("GET", "http://short.kaveh.me/xx", nil)
+	req.Header.Add("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	redirect(w, req)
+	if w.Body.String() != "{\"error\":\"not found\"}" {
+		t.Error("produced value is not correct", w.Body.String())
 	}
 }
 
