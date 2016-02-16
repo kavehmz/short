@@ -5,6 +5,7 @@ A sample URL shortener Golang app using Redis
 [![GoDoc](https://godoc.org/github.com/kavehmz/short?status.svg)](https://godoc.org/github.com/kavehmz/short)
 [![Build Status](https://travis-ci.org/kavehmz/short.svg?branch=master)](https://travis-ci.org/kavehmz/short)
 [![Coverage Status](https://coveralls.io/repos/github/kavehmz/short/badge.svg?branch=master)](https://coveralls.io/github/kavehmz/short?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kavehmz/short)](https://goreportcard.com/report/github.com/kavehmz/short)
 
 ---
 ### short
