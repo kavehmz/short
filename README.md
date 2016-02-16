@@ -10,6 +10,8 @@ A sample URL shortener Golang app using Redis
 ### short
 short is a simple web based api. It will produce shortest hash possible for a url. It will use longer hashes only in case of collision.
 
+For example for https://example.org is redis is empty it will return /5
+
 short has has two entries:
 
 /post which accepts a url and returns a short version of it.
@@ -18,6 +20,26 @@ short has has two entries:
 
 /TOKEN which based on request headers will return a json reply or will redirect the agent to the original url.
 
+### Usage
+
+```go
+package main
+
+import (
+	"log"
+	"net/http"
+
+	"github.com/kmzarc/short"
+)
+
+func main() {
+	site := short.Site{Host: "https://short.kaveh.me/"}
+	http.HandleFunc("/", site.Redirect)
+	http.HandleFunc("/post", site.Post)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+```
 
 ### How to check
 

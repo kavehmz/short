@@ -1,5 +1,8 @@
 /*
 Package short is a simple web based api. It will produce shortest hash possible for a url. It will use longer hashes only in case of collision.
+
+For example for https://example.org is redis is empty it will return /5
+
 short has has two entries:
 
 /post which accepts a url and returns a short version of it.
