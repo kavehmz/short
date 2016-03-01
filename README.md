@@ -42,6 +42,10 @@ func main() {
 
 ```
 
+If you like to see a sample implementation, which uses Heroku and limits maximum number of clients take a look at "cmd/shortsite/main.go" in:
+
+https://github.com/kmzarc/shortsite
+
 ### How to check
 
 You need to have a usable go installation. Then create a directory named site and follow the commands:
