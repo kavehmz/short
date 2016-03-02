@@ -42,9 +42,7 @@ func main() {
 
 ```
 
-If you like to see a sample implementation, which uses Heroku and limits maximum number of clients take a look at "cmd/shortsite/main.go" in:
-
-https://github.com/kmzarc/shortsite
+In example/main.go number if serving clients are limited as part of my "play with Golang" motivation.
 
 ### How to check
 

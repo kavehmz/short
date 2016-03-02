@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net"
 	"net/http"
 
 	_ "net/http/pprof"
@@ -22,7 +23,7 @@ func main() {
 	maxClientsPool := make(chan bool, maxServingClients)
 
 	server := &http.Server{
-		Addr:    ":8080"
+		Addr:    ":8080",
 		Handler: nil,
 		ConnState: func(conn net.Conn, state http.ConnState) {
 			switch state {
