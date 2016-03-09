@@ -65,16 +65,15 @@ func (site Site) saveShort(url string) (shortest string, err error) {
 
 	hash := fmt.Sprintf("%x", md5.Sum([]byte(url)))
 
-	old, _ := redis.String(redisdb.Do("GET", "i:"+hash))
-	if old != "" {
-		return site.Host + old, nil
+	similar, _ := redis.String(redisdb.Do("GET", "i:"+hash))
+	if similar != "" {
+		return site.Host + similar, nil
 	}
 
-	// Finding the shortest hash which does not exist.
-	for i := 1; i <= 32; i++ {
-		s, _ := redisdb.Do("GET", hash[0:i])
+	for hashShortestLen := 1; hashShortestLen <= 32; hashShortestLen++ {
+		s, _ := redisdb.Do("GET", hash[0:hashShortestLen])
 		if s == nil {
-			shortest = hash[0:i]
+			shortest = hash[0:hashShortestLen]
 			break
 		}
 	}
